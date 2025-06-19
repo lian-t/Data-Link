@@ -1,0 +1,640 @@
+{
+    "pipeline": [
+        {
+            "document_set": "migrate_db.tx_order",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc){return!(17==doc['type']&&[1, 3, 5, 7, 9, 10, 11, 12, 13, 15].indexOf(parseInt(doc['staff_style']))!==-1)}",
+                    "type": "filter"
+                },
+                {
+                    "script": "module.exports=function(doc){var d={};d['order_brand_id']='17012'+pad(doc['id'],'0',13);d['order_sn']=doc['order_sn'];d['created_at']=strtotime(doc['pat_date']);d['order_type']=2;return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_order_performance_log",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc){return!(17==doc['type']&&[1, 3, 5, 7, 9, 10, 11, 12, 13, 15].indexOf(parseInt(doc['staff_style']))!==-1)}",
+                    "type": "filter"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "1n",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_order",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "order_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "1n",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad1",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "staff_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "1n",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad2",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "charge_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "1n",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad3",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "manager_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "1n",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad4",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "director_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "script": "module.exports=function(doc){var d={};d['order_brand_id']=pad('17012','0',doc['id']);if(typeof doc['b']==='object'){d['order_sn']=doc['b']['order_sn']}d['role']=doc['kind'];d['proportion']=doc['proportion'];d['achievement']=doc['achievement'];var fmt_number=function(obj){var number=0;if(typeof obj==='object'){if(1==obj['id']){number=10003}else{if(1==obj['is_true']){number=obj['j_number']}else{number=obj['real_employee_id']}}}return number};var fmt_name=function(obj){var name='';if(typeof ad1==='object'){if(1==ad1['id']){name='柳伟斌'}else{if(1==ad1['is_true']){name=ad1['user_login']}else{}}}return name};var ad1=doc['ad1'];d['staff_jnumber']=fmt_number(ad1)d['staff_name']=fmt_name(ad1);var ad2=doc['ad2'];d['director_jnumber']=fmt_number(ad2)d['director_name']=fmt_name(ad2);var ad3=doc['ad3'];d['manager_jnumber']=fmt_number(ad3);d['manager_name']=fmt_name(ad3);var ad4=doc['ad4'];d['general_inspector_jnumber']=fmt_number(ad4);d['general_inspector_name']=fmt_name(ad4);d['company']=1;d['staff_department_path']=doc['path'];d['staff_department_path_name']=doc['path_name'];return d}",
+                    "type": "map"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sib",
+                    "sub_label": "",
+                    "field_map": {
+                        "r.user_login": "staff_name",
+                        "s.order_brand_id": "order_brand_id",
+                        "s.order_sn": "order_sn",
+                        "s.role": "role",
+                        "s.proportion": "proportion",
+                        "s.achievement": "achievement",
+                        "s.staff_jnumber": "staff_jnumber",
+                        "s.director_jnumber": "director_jnumber",
+                        "s.director_name": "director_name",
+                        "s.manager_jnumber": "manager_jnumber",
+                        "s.manager_name": "manager_name",
+                        "s.general_inspector_jnumber": "general_inspector_jnumber",
+                        "s.general_inspector_name": "general_inspector_name",
+                        "s.company": "company",
+                        "s.staff_department_path": "staff_department_path",
+                        "s.staff_department_path_name": "staff_department_path_name"
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "staff_jnumber",
+                            "operator": "=",
+                            "rel_field": "j_number"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sib",
+                    "sub_label": "",
+                    "field_map": {
+                        "r.user_login": "director_name",
+                        "s.order_brand_id": "order_brand_id",
+                        "s.order_sn": "order_sn",
+                        "s.role": "role",
+                        "s.proportion": "proportion",
+                        "s.achievement": "achievement",
+                        "s.staff_jnumber": "staff_jnumber",
+                        "s.staff_name": "staff_name",
+                        "s.director_jnumber": "director_jnumber",
+                        "s.manager_jnumber": "manager_jnumber",
+                        "s.manager_name": "manager_name",
+                        "s.general_inspector_jnumber": "general_inspector_jnumber",
+                        "s.general_inspector_name": "general_inspector_name",
+                        "s.company": "company",
+                        "s.staff_department_path": "staff_department_path",
+                        "s.staff_department_path_name": "staff_department_path_name"
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "director_jnumber",
+                            "operator": "=",
+                            "rel_field": "j_number"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sib",
+                    "sub_label": "",
+                    "field_map": {
+                        "r.user_login": "manager_name",
+                        "s.order_brand_id": "order_brand_id",
+                        "s.order_sn": "order_sn",
+                        "s.role": "role",
+                        "s.proportion": "proportion",
+                        "s.achievement": "achievement",
+                        "s.staff_jnumber": "staff_jnumber",
+                        "s.staff_name": "staff_name",
+                        "s.director_jnumber": "director_jnumber",
+                        "s.director_name": "director_name",
+                        "s.manager_jnumber": "manager_jnumber",
+                        "s.general_inspector_jnumber": "general_inspector_jnumber",
+                        "s.general_inspector_name": "general_inspector_name",
+                        "s.company": "company",
+                        "s.staff_department_path": "staff_department_path",
+                        "s.staff_department_path_name": "staff_department_path_name"
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "manager_jnumber",
+                            "operator": "=",
+                            "rel_field": "j_number"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sib",
+                    "sub_label": "",
+                    "field_map": {
+                        "r.user_login": "general_inspector_name",
+                        "s.order_brand_id": "order_brand_id",
+                        "s.order_sn": "order_sn",
+                        "s.role": "role",
+                        "s.proportion": "proportion",
+                        "s.achievement": "achievement",
+                        "s.staff_jnumber": "staff_jnumber",
+                        "s.staff_name": "staff_name",
+                        "s.director_jnumber": "director_jnumber",
+                        "s.director_name": "director_name",
+                        "s.manager_jnumber": "manager_jnumber",
+                        "s.manager_name": "manager_name",
+                        "s.general_inspector_jnumber": "general_inspector_jnumber",
+                        "s.company": "company",
+                        "s.staff_department_path": "staff_department_path",
+                        "s.staff_department_path_name": "staff_department_path_name"
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "general_inspector_jnumber",
+                            "operator": "=",
+                            "rel_field": "j_number"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_remarks",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc){return!(17==doc['type']&&1==doc['status']&&[1,3,5,7,9,10,11,12,13,15].indexOf(parseInt(doc['staff_style']))!==-1)}",
+                    "type": "filter"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "name",
+                            "operator": "=",
+                            "rel_field": "user_login"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_order",
+                    "layer_type": "sub",
+                    "sub_label": "o",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "gid",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['order_brand_id']='17012'+pad(doc['id'],'0',13);if(typeof doc['o']==='object'){d['order_sn']=doc['o']['order_sn']}var b=doc['b'];var staff_jnumber=0 if(typeof b==='object'){if(1==b['id']){staff_jnumber=10003}else{if(1==b['is_true']){staff_jnumber=b['j_number']}else{staff_jnumber=b['real_employee_id']}}}d['staff_jnumber']=staff_jnumber;d['staff_name']=doc['name'];d['content']=doc['info'];d['is_private']=2;d['created_at']=strtotime(doc['add_date']);return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_bobao_reserve_account_record",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc){return!(0==doc['del_flag']&&1==doc['is_cancel'])}",
+                    "type": "filter"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad1",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "create_user_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad2",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "update_last_user_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad3",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "goods_tgr",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_goods_bobao",
+                    "layer_type": "sub",
+                    "sub_label": "g",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "goods_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['id']=doc['id'];d['goods_difference_id']='17024'+pad(doc['goods_id'],'0',13);d['start_time']=strtotime(doc['start_time']);d['end_time']=strtotime(doc['end_time']);d['brand_stores_id']=doc['brand_id'];d['client_user_weixin']=doc['user_weixin'];d['profit']=doc['profit'];d['created_at']=strtotime(doc['created_at']);d['updated_at']=strtotime(doc['updated_at']);var fmt_number=function(obj){var number=0;if(typeof obj==='object'){if(1==obj['id']){number=10003}else{if(1==obj['is_true']){number=obj['j_number']}else{number=obj['real_employee_id']}}}return number};d['create_number']=fmt_number(doc['ad1']);d['last_update_user_number']=fmt_number(doc['ad2']);d['business_resources']=doc['business_resources'];d['del_flag']=0;d['tgr_number']=fmt_number(doc['ad3']);d['order_brand_id']='17012'+pad(doc['id'],'0',13);d['project']=17;d['type']=9;if(typeof doc['g']==='object'){d['staff_style']=doc['g']['staff_style']}else{d['staff_style']=null}d['is_new_client']=doc['is_new_client'];d['is_cancel']=2;d['up_funds']=doc['up_funds'];return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_brand",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return 0!=doc['status']}",
+                    "type": "filter"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad1",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "creator_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['id']=doc['id'];d['name']=doc['brand_name'];d['domain_id']=doc['domain_id'];var created_user=0;var ad1=doc['ad1'];if(typeof ad1==='object'){if(1==ad1['id']){created_user=10003}else{if(1==ad1['is_true']){created_user=ad1['j_number']}else{created_user=ad1['real_employee_id']}}}d['created_user']=ifnull(created_user,0);d['del_flag']=0;d['created_at']=doc['create_time'];d['updated_at']=doc['update_time'];return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_domain",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return 0!=doc['status']}",
+                    "type": "filter"
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['id']=doc['id'];d['name']=doc['domain_name'];d['created_user']=doc['creator_id'];d['del_flag']=0;d['created_at']=strtotime(doc['create_time']);d['updated_at']=now();return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_business_cooperation",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return!(0==doc['is_delete']&&17==doc['type']&&0<doc['goods_id'])}",
+                    "type": "filter"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad1",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "face_staff_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad2",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "staff_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['id']='100'+doc['id'];d['goods_difference_id']='17024'+pad(doc['goods_id'],'0',13);d['project']=17;d['type']=9;d['staff_style']=doc['staff_style'];d['status']=doc['status'];d['start_time']=strtotime(doc['start_time']);d['end_time']=strtotime(doc['end_time']);d['face_staff_id']=doc['face_staff_id'];d['staff_id']=doc['staff_id'];var fmt_number=function(obj){var number=0;if(typeof obj==='object'){if(1==obj['is_true']){number=obj['j_number']}else{number=obj['real_employee_id']}}return number};d['face_staff_number']=fmt_number(doc['ad1']);d['staff_number']=fmt_number(doc['ad2']);d['money']=doc['money'];d['is_cooperation']=doc['is_cooperation'];d['created_at']=strtotime(doc['created_at']);return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_paid_business_application",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return!(0==doc['is_delete']&&17==doc['type']&&2==doc['status'])}",
+                    "type": "filter"
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['id']='200'+doc['id'];d['goods_difference_id']='17024'+pad(doc['goods_id'],'0',13);d['project']=17;d['type']=9;d['staff_style']=doc['staff_style'];var staff_number=0;var ad1=doc['ad1'];if(typeof ad1==='object'){if(1==ad1['is_true']){staff_number=ad1['j_number']}else{staff_number=ad1['real_employee_id']}}d['staff_number']=staff_number;d['created_at']=strtotime(doc['applicant_time']);d['start_time']=strtotime(doc['start_time']);d['end_time']=strtotime(doc['end_time']);d['total_period']=doc['all_number'];d['money']=doc['all_money'];var status=2;var curr=now();if(curr<d['created_at']){status=1}else if(curr>d['end_time']){status=4}else if((d['end_time']-curr)/(3600*24)<=15){status=3}d['status']=doc['status'];return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_business_cooperation_remark",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return!(0==doc['is_delete'])}",
+                    "type": "filter"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_business_cooperation",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "cooperation_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){if(typeof doc['b']==='object'){if(17==doc['b']['type']){return false}}return true}",
+                    "type": "filter"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "ad1",
+                    "field_map": {},
+                    "wheres": [
+                        {
+                            "src_field": "staff_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['content']=doc['content'];d['cooperation_id']='100'+doc['cooperation_id'];d['created_at']=strtotime(doc['create_time']);d['status']=doc['status'];var ad1=doc['ad1'];var staff_number=0;if(typeof ad1==='object'){if(1==ad1['is_true']){staff_number=ad1['j_number']}else{staff_number=ad1['real_employee_id']}}d['staff_number']=staff_number;return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_business_cooperation_back_moneys",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return!(17==doc['type'])}",
+                    "type": "filter"
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['business_cooperation_id']='200'+doc['paid_business_application_id'];d['project']=17;d['type']=9;d['order_sn']=doc['order_sn'];d['amount']=doc['back_amount'];d['created_at']=strtotime(doc['back_date']);d['updated_at']=strtotime(doc['updated_at']);return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_wenda",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return!(17==doc['type'])}",
+                    "type": "filter"
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['old_id']=doc['id'];d['source']=ifnull(doc['uid'],0);d['title']=doc['title'];d['content']=doc['reply'];d['created_at']=strtotime(doc['asktime']);d['updated_at']=strtotime(doc['replytime']);d['istop']=doc['istop'];d['status']=doc['status'];d['iscommend']=doc['recommended'];d['type']=9;d['project']=17;d['click']=doc['hits'];d['template_id']=102;d['typeid']=1019;return d}",
+                    "type": "map"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_order_ka",
+            "flow": [
+                {
+                    "script": "module.exports=function(doc,docSet,opType){return!(17==doc['type']&&0==doc['is_delete'])}",
+                    "type": "filter"
+                },
+                {
+                    "script": "module.exports=function(doc,docSet,opType){var d={};d['order_brand_id']='17012'+pad(doc['id'],'0',13);d['sale_num']=doc['sale_num'];d['executor_num']=doc['executor_num'];d['rebate']=doc['rebate'];d['updated_at']=doc['updated_at'];d['created_at']=doc['created_at'];d['sale_name']=doc['sale_name'];d['executor_name']=doc['executor_name'];d['is_delete']=doc['is_delete'];d['running_water']=doc['running_water'];d['planners']=doc['planners'];d['is_handling_fee']=doc['is_handling_fee'];d['sae_num']=doc['sae_num'];d['sae_name']=doc['sae_name'];return d}",
+                    "type": "map"
+                }
+            ]
+        }
+    ],
+    "resource": [
+        {
+            "dsn": "",
+            "host": "db-02.test.com",
+            "id": "no1000001",
+            "pass": "******",
+            "port": "43161",
+            "type": "mysql",
+            "user": "select_users"
+        },
+        {
+            "dsn": "",
+            "host": "db-base-mysql-8.0.test.com",
+            "id": "no1000002",
+            "pass": "******",
+            "port": "43249",
+            "type": "mysql",
+            "user": "root"
+        }
+    ],
+    "setup": {
+        "desc": "播豹迁移",
+        "error_record": true
+    },
+    "source": [
+        {
+            "document_set": {
+                "migrate_db.tx_order": "migrate_db.tx_order",
+                "migrate_db.tx_order_performance_log": "migrate_db.tx_order_performance_log",
+                "migrate_db.tx_remarks": "migrate_db.tx_remarks",
+                "migrate_db.tx_bobao_reserve_account_record": "migrate_db.tx_bobao_reserve_account_record",
+                "migrate_db.tx_brand": "migrate_db.tx_brand",
+                "migrate_db.tx_domain": "migrate_db.tx_domain",
+                "migrate_db.tx_business_cooperation": "migrate_db.tx_business_cooperation",
+                "migrate_db.tx_paid_business_application": "migrate_db.tx_paid_business_application",
+                "migrate_db.tx_business_cooperation_remark": "migrate_db.tx_business_cooperation_remark",
+                "migrate_db.tx_paid_business_application_order": "migrate_db.tx_paid_business_application_order",
+                "migrate_db.tx_wenda": "migrate_db.tx_wenda",
+                "migrate_db.tx_order_ka": "migrate_db.tx_order_ka"
+            },
+            "extra": {
+                "limit": 1000,
+                "resume": true
+            },
+            "resource_id": "no1000001",
+            "sync_mode": "replica"
+        }
+    ],
+    "target": [
+        {
+            "document_set": {
+                "migrate_db.tx_order": "new_db.tx_orders",
+                "migrate_db.tx_order_performance_log": "media.tx_order_commissions",
+                "migrate_db.tx_remarks": "new_db.tx_order_notes",
+                "migrate_db.tx_bobao_reserve_account_record": "new_db.tx_reserve_account_records",
+                "migrate_db.tx_brand": "new_db.tx_brand_stores",
+                "migrate_db.tx_domain": "new_db.tx_reserve_account_records",
+                "migrate_db.tx_business_cooperation": "new_db.tx_business_cooperation",
+                "migrate_db.tx_paid_business_application": "new_db.tx_business_cooperation",
+                "migrate_db.tx_business_cooperation_remark": "new_db.tx_business_cooperation_remark",
+                "migrate_db.tx_paid_business_application_order": "new_db.tx_business_cooperation_back_moneys",
+                "migrate_db.tx_wenda": "new_db.article",
+                "migrate_db.tx_order_ka": "new_db.tx_order_ka"
+            },
+            "extra": {},
+            "resource_id": "no1000002"
+        }
+    ]
+}

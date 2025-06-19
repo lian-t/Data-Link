@@ -1,0 +1,17 @@
+#!groovy
+@Library('tools-jenkins@dev') _
+import org.enums.PipelineType
+
+def config = [
+  "serverName": "api-data-link-2.test.com", // 仅特定分支（test）使用
+  "dockerfilePath": "./cicd/Dockerfile",
+  // "apolloPath": "./cicd/apollo.yaml",
+  "appType": "hyperf",
+  "timeout": "5",
+  "imageRepo": "web-harbor.test.com/dev",
+  "agent": "server-241",
+  "dockerext": "-v /opt/jenkins-agent/resources/data-link-2.0/config.toml:/app/config.toml -v /opt/jenkins-agent/resources/data-link-2.0/runtime/:/app/runtime/"
+]
+
+config["appType"] = PipelineType."${config.appType}"
+LoadPipeline(config)

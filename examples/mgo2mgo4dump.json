@@ -1,0 +1,40 @@
+{
+  "setup": {
+    "desc": "mongodb to mongodb 4 dump",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "mongodb服务器",
+      "type": "mongodb",
+      "user": "admin",
+      "pass": "******",
+      "host": "10.10.10.10",
+      "port": "33017",
+      "dsn": "mongodb://admin:94215b0cb86d9ceb@10.10.10.10:33017/?authsource=admin&connect=direct"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "dump",
+      "document_set": "datalink_foo.area",
+      "extra": {
+        "limit": "0",
+        "skip": "0"
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "datalink_foo.area": "datalink_foo.area_dump_copy"
+      },
+      "extra": {
+      }
+    }
+  ],
+  "pipeline": []
+}

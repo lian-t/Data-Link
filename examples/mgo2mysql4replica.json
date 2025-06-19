@@ -1,0 +1,55 @@
+{
+  "setup": {
+    "desc": "mongodb to mysql use replica",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "mongodb服务器",
+      "type": "mongodb",
+      "user": "admin",
+      "pass": "******",
+      "host": "10.10.10.10",
+      "port": "33017",
+      "dsn": "mongodb://admin:94215b0cb86d9ceb@10.10.10.10:33017/?connect=direct"
+    },
+    {
+      "id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "mysql服务器",
+      "type": "mysql",
+      "user": "root",
+      "pass": "root",
+      "host": "127.0.0.1",
+      "port": "3306",
+      "dsn": ""
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "replica",
+      "document_set": "datalink_foo.area",
+      "extra": {
+        "resume": true,
+        "watch_event": [
+          "insert",
+          "update",
+          "replace",
+          "delete"
+        ]
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "datalink_foo.area": "test.area_stream"
+      },
+      "extra": {
+      }
+    }
+  ],
+  "pipeline": []
+}

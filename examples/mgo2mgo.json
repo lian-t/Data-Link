@@ -1,0 +1,37 @@
+{
+  "setup": {
+    "desc": "mongodb to mongodb",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "type": "mongodb",
+      "user": "admin",
+      "pass": "******",
+      "host": "10.10.10.10",
+      "port": "33017",
+      "dsn": "mongodb://admin:94215b0cb86d9ceb@10.10.10.10:33017/?connect=direct"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "direct",
+      "document_set": "datalink_foo.type_coll",
+      "extra": {
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "datalink_foo.type_coll": "datalink_foo.type_coll_copy"
+      },
+      "extra": {
+      }
+    }
+  ],
+  "pipeline": []
+}

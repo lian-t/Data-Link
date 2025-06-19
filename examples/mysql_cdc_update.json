@@ -1,0 +1,52 @@
+{
+  "pipeline": [],
+  "resource": [
+    {
+      "desc": "mysql服务器",
+      "dsn": "",
+      "host": "10.10.10.10",
+      "id": "ID01",
+      "pass": "******",
+      "port": "33168",
+      "type": "mysql",
+      "user": "developer"
+    },
+    {
+      "desc": "empty",
+      "dsn": "",
+      "host": "",
+      "id": "ID02",
+      "pass": "",
+      "port": "",
+      "type": "empty",
+      "user": ""
+    }
+  ],
+  "setup": {
+    "desc": "MySQL的CDC,使用查询字段监控",
+    "error_record": true
+  },
+  "source": [
+    {
+      "document_set": "test.country",
+      "extra": {
+        "cdc_field_interval": 60,
+        "cdc_field_insert": "created_at",
+        "cdc_field_update": "updated_at",
+        "cdc_field_delete": "",
+        "cdc_type": "field"
+      },
+      "resource_id": "ID01",
+      "sync_mode": "direct"
+    }
+  ],
+  "target": [
+    {
+      "document_set": {
+        "test.country": "test_country_001"
+      },
+      "extra": {},
+      "resource_id": "ID02"
+    }
+  ]
+}

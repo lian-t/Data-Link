@@ -1,0 +1,59 @@
+{
+  "setup": {
+    "desc": "mysql to plaintext",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "关系型数据库",
+      "type": "mysql",
+      "user": "root",
+      "pass": "123456",
+      "host": "127.0.0.1",
+      "port": "3306",
+      "dsn": ""
+    },
+    {
+      "id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "纯文本",
+      "type": "plaintext",
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": "",
+      "dsn": "d:\\plaintext002.json"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "direct",
+      "document_set": "test.student_tab",
+      "extra": {}
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "test.student_tab": "plaintext"
+      },
+      "extra": {
+        "append": true,
+        "created": true
+      }
+    }
+  ],
+  "pipeline": [
+    {
+      "document_set": "test.student_tab",
+      "flow": [
+        {
+          "type": "map",
+          "script": "module.exports=function(doc,docSet,opType){var d=doc;if(doc['classroom_id']>0){var ret=DocumentFind(doc['classroom_id'],'test.classroom','a9e96c08-56de-4d97-a504-59ddaccee8c6');if(typeof ret==='object'){d['classroom_detail']=ret}}if(typeof d['classroom_detail']!=='object'){d['classroom_detail']=null}return d}"
+        }
+      ]
+    }
+  ]
+}

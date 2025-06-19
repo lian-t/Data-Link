@@ -1,0 +1,43 @@
+# !!!注意,程序的工作目录为项目根目录!!!
+# 指定运行CPU核
+core-number = 4
+
+# 项目启动自动运行任务
+task-auto-start = false
+
+# pipeline
+pipeline-worker-count = 1
+
+# linkd-host
+linkd-host = '0.0.0.0'
+
+# linkd-port
+linkd-port = '19191'
+
+# basic auth,admin:admin
+linkd-auth = 'admin:admin'
+
+# set source=mysql sync_mode=replica need set value
+mysqldump-path = 'D:\bin\mysqldump.exe'
+
+# mongoexport 使用dump
+mongoexport-path = 'D:\bin\mongoexport.exe'
+
+# obs是否开启
+log-obs-enabled = false
+# obs服务类型:tcp|http
+log-obs-type = "http"
+# obs服务端口
+log-obs-port = '19192'
+
+# log-file-path
+log-file = 'runtime/log/app.log'
+
+# task数据库-用于存储任务
+task-path = 'runtime/task'
+
+# task error path
+task-error-log-path = 'runtime/error'
+
+# task resume path
+task-resume-path = 'runtime/resume'

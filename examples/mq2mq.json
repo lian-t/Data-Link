@@ -1,0 +1,56 @@
+{
+  "setup": {
+    "desc": "rabbitmq to rabbitmq",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "rabbitmq消息队列",
+      "type": "rabbitmq",
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": "",
+      "vhost": "",
+      "dsn": "amqp://rabbitmq:s%26rG4sd%26534*%23d@10.10.10.10:5672/"
+    },
+    {
+      "id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "rabbitmq消息队列",
+      "type": "rabbitmq",
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": "",
+      "dsn": "amqp://rabbitmq:s%26rG4sd%26534*%23d@10.10.10.10:5672/"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "direct",
+      "document_set": "_mq_msg_doc_set",
+      "extra": {
+        "exchange": "",
+        "routing_key": "",
+        "queue_name": "",
+        "pk_field": ""
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "_mq_msg_doc_set": "_mq_msg_doc_set2"
+      },
+      "extra": {
+        "exchange": "",
+        "routing_key": "",
+        "queue_name": ""
+      }
+    }
+  ],
+  "pipeline": []
+}

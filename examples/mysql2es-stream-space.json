@@ -1,0 +1,171 @@
+{
+  "setup": {
+    "desc": "from mysql to elasticsearch",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "mysql服务器",
+      "type": "mysql",
+      "user": "root",
+      "pass": "root",
+      "host": "127.0.0.1",
+      "port": "3306",
+      "dsn": ""
+    },
+    {
+      "id": "c888b053-45f3-4c98-b219-8acfe67999d1",
+      "desc": "数据库",
+      "type": "mysql",
+      "user": "root",
+      "pass": "root",
+      "host": "127.0.0.1",
+      "port": "3306",
+      "dsn": ""
+    },
+    {
+      "extra": null,
+      "host": "db-01.test.com",
+      "id": "bf907d93-e499-449f-92f2-cd2f057450bc",
+      "pass": "******",
+      "port": "43092",
+      "type": "elasticsearch",
+      "desc": "搜索服务",
+      "dsn": "http://db-01.test.com:43092",
+      "user": "elastic"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "replica",
+      "document_set": "test.country",
+      "extra": {}
+    },
+    {
+      "resource_id": "c888b053-45f3-4c98-b219-8acfe67999d1",
+      "sync_mode": "replica",
+      "document_set": "test.province",
+      "extra": {}
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "bf907d93-e499-449f-92f2-cd2f057450bc",
+      "document_set": {
+        "country_mixed_set": "datalink_country_index"
+      },
+      "extra": {}
+    }
+  ],
+  // 数据集,缓存池,需要在缓存池中做匹配关系.该任务下的数据都进入到数据集中,不直接进入pipeline中.
+  // 视为一个空间:
+  //      1.每条数据进来时做匹配
+  //      2.定时检测满足条件
+  "space": [
+    {
+      // 数据集,必须有一数据集作为主的,其他数据集作为数据单元.
+      // 主数据单元一个标准作为数据完整标志
+      // 只考附表数据超时,主数据集只有缓存时间
+      "main_set": "test.country",
+      // 处理完成之后指定新的数据集名称
+      "new_set": "country_mixed_set",
+      // cache超时
+      "lifetime": "100s",
+      // 超时处理:1.超时入库 2.错误记录
+      "timeout_strategy": "save|error",
+      // 不同集合的关联关系,以及数据组合关系
+      "relate_sets_wheres": [
+        {
+          // 关联数据集1
+          "set": "test.province",
+          "condition": {
+            // 主数据集 = 关联数据集1
+            "goods_id": "goods_id"
+          },
+          "layer_type": "sub",
+          "layer_type_value": {
+            // 如果是 sub,则子集的键名,如果label与其他sub时追加关系
+            "sub_label": "",
+            "sub_format": "list|map"
+            // 存储形势,以list存储还是以map存储
+          }
+        },
+        {
+          // 关联数据集2
+          "set": "test.city",
+          "wheres": {
+            // 主数据集 = 关联数据集2
+            "goods_id": "goods_id"
+          },
+          // 关联关系 sib
+          "layer_type": "sib",
+          "layer_type_value": {
+            // 统计需要处理字段映射关系
+            "field_map": {
+              "r.id": "cate_id"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "pipeline": [
+    {
+      "document_set": "test.country",
+      "flow": [
+        {
+          "type": "map",
+          "script": "module.exports=function(doc){doc.attr1=2022;return doc;}"
+        },
+        {
+          "type": "filter",
+          "script": "module.exports=function(doc){return doc.id>100;}"
+        },
+        {
+          "type": "mapInline",
+          "field_map": [
+            {
+              "srcField": "id",
+              "srcType": "long",
+              "aimField": "tab_id",
+              "aimType": "long"
+            },
+            {
+              "srcField": "code",
+              "srcType": "string",
+              "aimField": "tab_code",
+              "aimType": "string"
+            },
+            {
+              "srcField": "name",
+              "srcType": "string",
+              "aimField": "tab_name",
+              "aimType": "string"
+            }
+          ]
+        },
+        {
+          "type": "relateInline",
+          "assoc_type": "11",
+          "script": "",
+          "relate_resource_id": "c888b053-45f3-4c98-b219-8acfe67999d1",
+          "relate_document_set": "test.country_cate",
+          "layer_type": "sib",
+          "sub_label": "",
+          "field_map": {
+            "r.id": "cate_id"
+          },
+          "wheres": [
+            {
+              "src_field": "cate",
+              "operator": "=",
+              "rel_field": "id"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

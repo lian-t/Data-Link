@@ -1,0 +1,45 @@
+{
+  "setup": {
+    "desc": "from mongodb to mongodb stream",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "mongodb服务器",
+      "type": "mongodb",
+      "user": "admin",
+      "pass": "******",
+      "host": "10.10.10.10",
+      "port": "33017",
+      "dsn": "mongodb://admin:94215b0cb86d9ceb@10.10.10.10:33017/?connect=direct"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "stream",
+      "document_set": "datalink_foo.stream_foo",
+      "extra": {
+        "watch_event": [
+          "insert",
+          "update",
+          "delete"
+        ],
+        "resumeAfter": "resume MongoDB的接口",
+        "replay": "MongoDB的接口"
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "datalink_foo.stream_foo": "datalink_foo.stream_foo001"
+      },
+      "extra": {
+      }
+    }
+  ],
+  "pipeline": []
+}

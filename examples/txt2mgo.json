@@ -1,0 +1,62 @@
+{
+  "setup": {
+    "desc": "plaintext to mongodb",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "存文本",
+      "type": "plaintext",
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": "",
+      "dsn": "D:\\workspace\\2021-09-18-1631964510-https_get_4343.json"
+    },
+    {
+      "id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "文档数据库",
+      "type": "mongodb",
+      "user": "",
+      "pass": "",
+      "host": "",
+      "port": "",
+      "dsn": "mongodb://192.168.50.101:27017/?connect=direct"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "direct",
+      "document_set": "plaintext",
+      "extra": {
+        "fmt": "json",
+        "delimiter": "\n"
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "plaintext": "datalink2.http_request"
+      },
+      "extra": {
+        "append": true,
+        "created": true
+      }
+    }
+  ],
+  "pipeline": [
+    {
+      "document_set": "plaintext",
+      "flow": [
+        {
+          "type": "map",
+          "script": "function atob(input){var chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';var str=(String(input)).replace(/[=]+$/,'');if(str.length%4===1){throw new Error(\"'atob' failed: The string to be decoded is not correctly encoded.\");}for(var bc=0,bs,buffer,idx=0,output='';buffer=str.charAt(idx++);~buffer&&(bs=bc%4?bs*64+buffer:buffer,bc++%4)?output+=String.fromCharCode(255&bs>>(-2*bc&6)):0){buffer=chars.indexOf(buffer)}return output};module.exports=function(doc){if(!!doc.data){doc.data=atob(doc.data)}return doc}"
+        }
+      ]
+    }
+  ]
+}

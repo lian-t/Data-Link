@@ -1,0 +1,102 @@
+{
+    "pipeline": [
+        {
+            "document_set": "migrate_db.goods_patent_detail",
+            "flow": [
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['goods_id']=doc['goods_id'];d['describe']=doc['describe'];d['goods_images']=doc['goods_images'];d['seller_say']=doc['seller_say'];d['synopsis']=doc['synopsis'];d['synopsis_images']=doc['synopsis_images'];d['created_at']=doc['created_at'];d['updated_at']=doc['updated_at'];return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.goods_patent_remark",
+            "flow": [
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc,op,time,){var d={};d['j_number']=doc['j_number'];d['goods_id']=doc['goods_id'];d['img']=doc['img'];d['text']=doc['text'];d['created_at']=ifnull(doc['created_at'],0);d['state']=doc['state'];d['updated_at']=ifnull(doc['updated_at'],now());d['platform']=doc['platform'];d['j_name']=doc['j_name'];d['is_home_show']=doc['is_home_show'];return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.goods_patent_reserved_info",
+            "flow": [
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['goods_id']=doc['goods_id'];d['platform']=doc['platform'];d['account']=doc['account'];d['state']=doc['state'];if(parseInt(doc['platform'])===3&&doc['uid'].length<18){d['uid']='30033'+pad(doc['uid'],13,'0')}else{d['uid']=doc['uid']}d['j_number']=doc['j_number'];d['start_time']=doc['start_time'];d['end_time']=doc['end_time'];d['agreement_star_time']=doc['agreement_star_time'];d['agreement_end_time']=doc['agreement_end_time'];d['drawmoney_start_time']=doc['drawmoney_start_time'];d['drawmoney_end_time']=doc['drawmoney_end_time'];d['remark']=doc['remark'];d['created_at']=doc['created_at'];d['updated_at']=doc['updated_at'];return d}"
+                }
+            ]
+        }
+    ],
+    "resource": [
+        {
+            "desc": "migrate_db",
+            "dsn": "",
+            "host": "db-base-mysql-8.0.test.com",
+            "id": "no1000001",
+            "pass": "******",
+            "port": "43249",
+            "type": "mysql",
+            "user": "root"
+        },
+        {
+            "desc": "new_db2",
+            "dsn": "",
+            "host": "db-base-mysql-8.0.test.com",
+            "id": "no1000002",
+            "pass": "******",
+            "port": "43249",
+            "type": "mysql",
+            "user": "root"
+        },
+        {
+            "desc": "new_db",
+            "dsn": "",
+            "host": "db-base-mysql-8.0.test.com",
+            "id": "no1000003",
+            "pass": "******",
+            "port": "43249",
+            "type": "mysql",
+            "user": "root"
+        }
+    ],
+    "setup": {
+        "desc": "专利转让",
+        "error_record": true
+    },
+    "source": [
+        {
+            "document_set": {
+                "migrate_db.goods_patent": "migrate_db.goods_patent",
+                "migrate_db.goods_patent_detail": "migrate_db.goods_patent_detail",
+                "migrate_db.goods_patent_remark": "migrate_db.goods_patent_remark",
+                "migrate_db.goods_patent_reserved_info": "migrate_db.goods_patent_reserved_info"
+            },
+            "extra": {
+                "limit": 1000,
+                "resume": true,
+                "onDDL": true
+            },
+            "resource_id": "no1000001",
+            "sync_mode": "replica"
+        }
+    ],
+    "target": [
+        {
+            "document_set": {
+                "migrate_db.goods_patent": "new_db2.goods_patent"
+            },
+            "extra": {},
+            "resource_id": "no1000002"
+        },
+        {
+            "document_set": {
+                "migrate_db.goods_patent_detail": "new_db.x_goods_patent_details",
+                "migrate_db.goods_patent_remark": "new_db.x_goods_patent_remarks",
+                "migrate_db.goods_patent_reserved_info": "new_db.x_goods_patent_reserved_infos"
+            },
+            "extra": {},
+            "resource_id": "no1000003"
+        }
+    ]
+}

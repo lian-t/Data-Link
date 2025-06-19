@@ -1,0 +1,611 @@
+{
+    "pipeline": [
+        {
+            "document_set": "migrate_db.tx_users",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return parseInt(doc['user_type'])!=8;}"
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['user_id']='17033'+pad(doc['id'],'0',13);d['old_user_id']=doc['id'];d['username']=doc['user_login'];d['password']=doc['user_pass'];d['brand_id']=17;d['mobile']=doc['mobile'];d['qq']=ifnull(doc['user_qq'],'');d['wx']=ifnull(doc['user_weixin'],'');d['email']=ifnull(doc['user_email'],'');d['created_at']=strtotime(doc['create_time']);d['reg_time']=strtotime(doc['create_time']);d['last_login_time']=strtotime(doc['last_login_time']);d['last_login_ip']=ifnull(doc['last_login_ip'],'');var vs=parseInt(doc['user_status']);switch(vs){case 0:d['state']=4;break;case 1:d['state']=1;break;case 2:d['state']=1;break;default:d['state']=2;break}d['forbid']=(vs==0)?1:0;d['real_name']=doc['real_name'];d['sex']=doc['sex'];var a=doc['avatar'];if(typeof a==='undefined'||a===null){a=''}else{a={'avatar':a}}d['special_field']=a;d['real_auth']=(doc['authentication']==2)?1:0;d['balance']=doc['available'];d['freezing_funds']=doc['freeze'];return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_user_bank",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return parseInt(doc['bank_status'])!=2;}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_area",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "bank_area",
+                            "operator": "=",
+                            "rel_field": "name"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_area",
+                    "layer_type": "sub",
+                    "sub_label": "c",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "bank_city",
+                            "operator": "=",
+                            "rel_field": "name"
+                        }
+                    ]
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['brand_id']=17;d['user_id']='17011'+pad(doc['uid'],'0',13);var bs=0;switch(parseInt(doc['bank_status'])){case 1:bs=0;break;case 2:bs=1;break;case 3:bs=2;break;default:bs=0;break}d['state']=bs;d['real_name_type']=(doc['type']==2)?1:0;d['audit_fail_reason']=doc['bank_reason'];d['created_at']=doc['create_time'];d['bank_card']=doc['bank_card'];d['reserved_name']=doc['bank_account'];d['bank_name']=doc['bank_name'];d['branch_line']=doc['branch_name'];var b=doc['b'];if(typeof b==='object'){d['branch_province_id']=ifnull(b['id'],0)}d['branch_province']=doc['bank_area'];var c=doc['c'];if(typeof c==='object'){d['branch_city_id']=ifnull(c['id'],0)}d['branch_city']=doc['bank_city'];return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_cash_withdraw",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return!(parseInt(doc['type'])==17&&[1,3,5,7,9,10,11,12,13,15].indexOf(parseInt(doc['staff_style']))!==-1)}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "operate_staff_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "c",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "staff_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_user_capital",
+                    "layer_type": "sub",
+                    "sub_label": "d",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "add_table_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['order_sn']=doc['order_sn'];d['project']=17;d['type']=9;d['staff_style']=doc['staff_style'];var v=1;switch(parseInt(doc['status'])){case 1:v=1;break;case 2:v=3;break;case 4:v=4;break;case 5:v=2;break;case 6:v=1;break;default:break}d['state']=v;var v1=1;switch(parseInt(doc['cash_type'])){case 1:v1=3;break;case 2:v1=3;break;case 3:v1=1;break;case 4:v1=1;break;default:break}d['finance_type']=v1;var v2=0;switch(parseInt(doc['cash_type'])){case 2:v2=1;break;case 3:v2=1;break;case 4:v2=2;break;default:break}d['finance_type_way']=v2;d['is_urgent']=doc['is_urgent'];d['amount']=doc['money'];var v3=ifnull(doc['intro'],'');var sfun=function(s,c1,c2){if(typeof s!=='string'||s.length==0){return''}b=s.split(c1,1);if(!Array.isArray(b)||b.length==0){return''}c=b[0].split(c2,2);if(!Array.isArray(c)||c.length!=2){return''}return c[1]};d['remark']=sfun(v3,'】','【');d['accounts']=sfun(v3,'，银行','：');d['receive_type']=1;d['receive_bank']=sfun(v3,'银行卡号：','银行：');d['receive_account_name']=sfun(v3,'，银行','：');var v4='';if(typeof v3==='string'){if(v3.indexOf('手机号：')!=-1){v4=sfun(v3,'【','银行卡号：')}else{v4=sfun(v3,'手机号：','银行卡号：')}}d['receive_account']=ifnull(v4,'');d['receive_account_bank_address']=sfun(v3,'银行卡号：','银行：');var v5='';if(typeof v3==='string'){if(v3.indexOf('手机号：')!=-1){v5=sfun(v3,'【','手机号：')}}d['receive_phone']=v5;var v6=0;var v7='';var b=doc['b'];if(typeof b==='object'){if(b['id']==1){v6=10003;v7='柳伟斌'}else{if(b['is_true']==1){v6=b['j_number'];v7=b['user_login']}else{v6=b['real_employee_id']}}}d['inspector_number']=v6;d['inspector_name']=v7;var v8=0;var v9='';var c=doc['c'];if(c['id']==1){v8=10003;v9='柳伟斌'}else{if(c['is_true']==1){v8=c['j_number'];v9=b['user_login']}else{v8=c['real_employee_id']}}d['applyer_number']=v8;d['applyer_name']=v9;d['apply_at']=doc['add_time'];d['serial_number']=ifnull(doc['capital_sn'],'');d['created_at']=ifnull(doc['add_time'],0);d['updated_at']=ifnull(doc['edit_time'],0);var v10='';var dc=doc['describe_content'];if(typeof dc==='string'&&dc.length>0){var patt=/src=&quot;(.*?)&quot;/i;var ret=patt.exec(dc);if(Array.isArray(ret)&&ret.length>1){v10=ret[1]}}d['voucher_img']=ifnull(v10,'');var d1=doc['d'];if(typeof d1==='object'){for(var k in d1){if(k==='id'){continue}d[k]=d1[k]}}return d}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sib",
+                    "sub_label": "d",
+                    "field_map": {
+                        "r.user_login":"inspector_name",
+                        "s.order_sn":"order_sn",
+                        "s.project":"project",
+                        "s.type":"type",
+                        "s.staff_style":"staff_style",
+                        "s.state":"state",
+                        "s.finance_type":"finance_type",
+                        "s.finance_type_way":"finance_type_way",
+                        "s.is_urgent":"is_urgent",
+                        "s.amount":"amount",
+                        "s.remark":"remark",
+                        "s.accounts":"accounts",
+                        "s.receive_type":"receive_type",
+                        "s.receive_bank":"receive_bank",
+                        "s.receive_account_name":"receive_account_name",
+                        "s.receive_account":"receive_account",
+                        "s.receive_account_bank_address":"receive_account_bank_address",
+                        "s.receive_phone":"receive_phone",
+                        "s.inspector_number":"inspector_number",
+                        "s.applyer_number":"applyer_number",
+                        "s.applyer_name":"applyer_name",
+                        "s.apply_at":"apply_at",
+                        "s.serial_number":"serial_number",
+                        "s.created_at":"created_at",
+                        "s.updated_at":"updated_at",
+                        "s.voucher_img":"voucher_img"
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "inspector_number",
+                            "operator": "=",
+                            "rel_field": "j_number"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sib",
+                    "sub_label": "d",
+                    "field_map": {
+                        "r.user_login":"applyer_name",
+                        "s.inspector_name":"inspector_name",
+                        "s.order_sn":"order_sn",
+                        "s.project":"project",
+                        "s.type":"type",
+                        "s.staff_style":"staff_style",
+                        "s.state":"state",
+                        "s.finance_type":"finance_type",
+                        "s.finance_type_way":"finance_type_way",
+                        "s.is_urgent":"is_urgent",
+                        "s.amount":"amount",
+                        "s.remark":"remark",
+                        "s.accounts":"accounts",
+                        "s.receive_type":"receive_type",
+                        "s.receive_bank":"receive_bank",
+                        "s.receive_account_name":"receive_account_name",
+                        "s.receive_account":"receive_account",
+                        "s.receive_account_bank_address":"receive_account_bank_address",
+                        "s.receive_phone":"receive_phone",
+                        "s.inspector_number":"inspector_number",
+                        "s.applyer_number":"applyer_number",
+                        "s.apply_at":"apply_at",
+                        "s.serial_number":"serial_number",
+                        "s.created_at":"created_at",
+                        "s.updated_at":"updated_at",
+                        "s.voucher_img":"voucher_img"
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "applyer_number",
+                            "operator": "=",
+                            "rel_field": "j_number"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_bill_copy1",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return(parseInt(doc['type'])!=17)}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_users",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "uid",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){if(typeof doc['b']==='object'){return(parseInt(doc['b']['user_type'])!=8)}return true}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_bill_order",
+                    "layer_type": "sub",
+                    "sub_label": "c",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "id",
+                            "operator": "=",
+                            "rel_field": "bill_id"
+                        }
+                    ]
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var ifnull=function(v,def){if(typeof v==='undefined'||v===null){return def}return v};if(typeof doc['c']==='object'){doc['c_order_id']=ifnull(doc['c']['order_id'],0)}else{doc['c_order_id']=0}return doc}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_order",
+                    "layer_type": "sub",
+                    "sub_label": "d",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "c_order_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_bill_detail",
+                    "layer_type": "sub",
+                    "sub_label": "f",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "detail_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "g",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "created_user",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['id']='20000'+doc['detail_id'];d['project']=17;d['type']=9;var d1=doc['d'];if(typeof d1==='object'){d['staff_style']=ifnull(d1['staff_style'],0)}d['total_fp_money']=doc['total_fp_money'];var v1=1;var f=doc['f'];if(typeof f==='object'){if(f['style']==1){v1=3}else if(f['style']==2){v1=2}else if(f['style']==3){v1=1}d['receive_area']=f['area'];d['receive_name']=f['name'];d['receive_phone']=f['phone'];d['bill_type']=f['bill_type'];d['bill_start']=f['bill_start'];d['tax_number']=f['tax_num']}d['invoice_type']=v1;d['invoice_user_style']=doc['style'];d['amount']=doc['money'];d['bill_style']=2;var v2=doc['state'];if(doc['state']==0){v2=8}else if(doc['state']==1){v2=2}else if(doc['state']==2){v2=9}else if(doc['state']==3){v2=3}else if(doc['state']==4){v2=4}d['state']=doc['state'];d['company_id']=3;var g=doc['g'];d['applyer_number']=0;d['applyer_name']='';if(typeof g==='object'){d['applyer_number']=ifnull(g['real_employee_id'],ifnull(g['j_number'],0));d['applyer_name']=ifnull(g['user_login'],'');if(d['applyer_number']===''){d['applyer_number']=0}}d['apply_at']=doc['created'];var v3='';if(typeof f==='object'&&typeof f['pics']==='object'){var pics=f['pics'];if(!Array.isArray(pics)){pics=[]}for(var k1 in pics){var ele=pics[k1];v3+=',https://img.maihui.com'+ele}if(v3.length>0){v3=v3.substring(1)}}d['attachment_file']=v3;return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_bill_copy2",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return!(parseInt(doc['type'])==17)}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_users",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "uid",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){if(typeof doc['b']==='object'){return(parseInt(doc['b']['user_type'])!=8)}return true}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_bill_detail",
+                    "layer_type": "sub",
+                    "sub_label": "f",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "detail_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_admin",
+                    "layer_type": "sub",
+                    "sub_label": "g",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "created_user",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type":"map",
+                    "script":"module.exports=function(doc){var d={};d['invoice_id']='20000'+doc['detail_id'];d['invoice_amount']=doc['money'];var f=doc['f'];if(typeof f==='object'){d['express_sn']=ifnull(f['express_sn'],'');d['express_company']=ifnull(f['express_company'],'');var v1='';if(typeof f['pdf_url']==='object'&&Array.isArray(f['pdf_url'])){for(var k1 in f['pdf_url']){var ele=f['pdf_url'][k1];v1+=',https://img.maihui.com'+ele}if(v1.length>0){v1=v1.substring(1)}d['invoice_at']=f['created'];d['created_at']=f['created'];d['updated_at']=f['modify_time'];d['remark']=f['remark']}d['invoice_file']=v1;d['invoice_number']=ifnull(f['bill_sn'],'')}var g=doc['g'];if(typeof g==='object'){d['founder_no']=ifnull(g['real_employee_id'],ifnull(g['j_number'],0));d['founder_name']=ifnull(g['user_login'],'');d['mailer_name']=ifnull(g['mailer_name'],'');d['mailer_number']=ifnull(g['real_employee_id'],ifnull(g['j_number'],0));if(d['mailer_number']===''){d['mailer_number']=0}}return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_bill_copy3",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return!(parseInt(doc['type'])==17)}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_users",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "uid",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){if(typeof doc['b']==='object'){return(parseInt(doc['b']['user_type'])!=8)}return true}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_bill_order",
+                    "layer_type": "sub",
+                    "sub_label": "c",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "bill_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){if(typeof doc['c']==='object'){doc['c_order_id']=doc['c']['order_id']}else{doc['c_order_id']=0}return doc}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "11",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_order",
+                    "layer_type": "sub",
+                    "sub_label": "d",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "c_order_id",
+                            "operator": "=",
+                            "rel_field": "id"
+                        }
+                    ]
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['invoice_id']='20000'+doc['detail_id'];var c=d['c'];if(typeof c==='object'){d['order_sn']=ifnull(c['order_sn'],'')}d['project']=17;d['type']=9;d['staff_style']=ifnull(doc['staff_style'],0);d['total_taxation']=doc['total_taxation'];d['created_at']=doc['created'];d['accounts']=ifnull(doc['user_login'],'');return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_order_copy1",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return!(parseInt(doc['type'])==17&&[1,3,5,7,9,10,11,12,13,15].indexOf(parseInt(doc['staff_style']))!==-1)}"
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['order_id']='17011'+pad(doc['id'],'0',13);d['order_sn']=doc['order_sn'];d['data_status']=(doc['is_delete']==2)?0:doc['is_delete'];d['project']=17;d['type']=9;d['staff_style']=doc['staff_style'];d['order_total_money']=doc['all_money'];d['source']=7;d['user_id']='17033'+pad(doc['user_id'],'0',13);d['seller_id']='17033'+pad(doc['seller_id'],'0',13);d['goods_id']=doc['goods_id'];d['created_at']=strtotime(doc['pat_date']);return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_order_copy2",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return!(parseInt(doc['type'])==17&&[1, 3, 5, 7, 9, 10, 11, 12, 13, 15].indexOf(parseInt(doc['staff_style'])) !==-1)}"
+                },
+                {
+                    "type": "relateInline",
+                    "assoc_type": "1n",
+                    "script": "",
+                    "relate_resource_id": "no1000001",
+                    "relate_document_set": "migrate_db.tx_discount_records",
+                    "layer_type": "sub",
+                    "sub_label": "b",
+                    "field_map": {
+                    },
+                    "wheres": [
+                        {
+                            "src_field": "id",
+                            "operator": "=",
+                            "rel_field": "order_id"
+                        },
+                        {
+                            "src_field": "",
+                            "const_value": "1",
+                            "operator": "=",
+                            "rel_field": "status"
+                        }
+                    ]
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['order_id']='17011'+pad(doc['id'],'0',13);d['order_brand_id']='17012'+pad(doc['id'],'0',13);d['order_sn']=doc['order_sn'];d['order_status']=doc['status'];d['data_status']=doc['is_delete']==2?0:doc['is_delete'];d['goods_id']=doc['goods_id'];d['project']=17;d['type']=9;d['staff_style']=doc['staff_style'];d['user_project']=17;d['seller_project']=9;d['order_money']=doc['all_money'];if(doc['number']>0){d['goods_money']=parseInt(ifnull(doc['all_money'],0)*100/ifnull(doc['number'],0))/100}d['goods_money']=ifnull(d['goods_money'],0);d['goods_number']=doc['number'];d['user_service_money']=doc['service_money'];d['foregift']=parseInt((ifnull(doc['foregift'],0)+ifnull(doc['foregift2'],0))*100)/100;d['foregift']=ifnull(d['foregift'],0);d['pay_load_money']=ifnull(doc['paid_loan'],0);d['user_feedback_money']=doc['other_user_money'];d['is_hidden']=doc['is_hidden'];d['request_funds_money']=doc['request_funds'];d['task_money']=doc['task_amount'];d['user_discount_money']=doc['discount'];d['seller_discount_money']=doc['sell_discount'];d['gm_discount']=doc['g_discount'];d['paid_money']=doc['paid'];d['real_achievement']=doc['real_achievement'];d['created_at']=ifnull(strtotime(doc['pat_date']),0);d['pay_time']=ifnull(strtotime(doc['pay_date']),0);d['refund_time']=ifnull(strtotime(doc['refund_date']),0);d['complete_time']=ifnull(strtotime(doc['complete_date']),0);d['source']=7;d['preset_loan']=doc['freeze_money'];d['other_cost_money']=doc['not_service'];var b=doc['b'];d['bad_debt_money']=0;if(typeof b==='object'&&Array.isArray(b)){var s=0;for(var key in b){var ele=b[key];s=s+ifnull(ele['buy_money'],0)+ifnull(ele['money'],0)}d['bad_debt_money']=s}d['seller_service_money']=doc['sell_service_money'];d['user_type']=0;d['user_id']='17033'+pad(doc['user_id'],'0',13);d['seller_id']='17033'+pad(doc['seller_id'],'0',13);d['is_lock']=doc['is_lock'];d['order_mining']=doc['order_mining'];d['order_mining_two']=doc['order_mining_two'];d['is_modify']=1;switch(parseInt(doc['account_state'])){case 1:case 2:case 3:d['is_settle']=1;break;default:d['is_settle']=0;break}d['order_type']=2;return d}"
+                }
+            ]
+        },
+        {
+            "document_set": "migrate_db.tx_order_money",
+            "flow": [
+                {
+                    "type": "filter",
+                    "script": "module.exports=function(doc){return!(parseInt(doc['status'])==3&&parseInt(doc['type'])==17&&[1,3,5,7,9,10,11,12,13,15].indexOf(parseInt(doc['staff_style']))!==-1)}"
+                },
+                {
+                    "type": "map",
+                    "script": "module.exports=function(doc){var d={};d['order_sn']=doc['order_sn'];d['project']=17;d['type']=9;d['staff_style']=doc['staff_style'];d['state']=3;d['finance_type']=5;d['finance_type_way']=1;d['amount']=doc['money'];d['remark']=doc['other'];d['accounts']=doc['user_name'];d['receive_type']=2;d['source']=1;d['user_id']='17033'+pad(doc['user_id'],'0',13);return d}"
+                }
+            ]
+        }
+    ],
+    "resource": [
+        {
+            "dsn": "",
+            "host": "db-02.test.com",
+            "id": "no1000001",
+            "pass": "******",
+            "port": "43161",
+            "type": "mysql",
+            "user": "select_users"
+        },
+        {
+            "dsn": "",
+            "host": "db-base-mysql-8.0.test.com",
+            "id": "no1000002",
+            "pass": "******",
+            "port": "43249",
+            "type": "mysql",
+            "user": "root"
+        }
+    ],
+    "setup": {
+        "desc": "迁移",
+        "error_record": true
+    },
+    "source": [
+        {
+            "document_set": {
+                "migrate_db.tx_users":"migrate_db.tx_users",
+                "migrate_db.tx_user_bank":"migrate_db.tx_user_bank",
+                "migrate_db.tx_user_auth":"migrate_db.tx_user_auth",
+                "migrate_db.tx_user_capital":"migrate_db.tx_user_capital",
+                "migrate_db.tx_cash_withdraw":"migrate_db.tx_cash_withdraw",
+                "migrate_db.tx_bill":[
+                    "migrate_db.tx_bill_copy1",
+                    "migrate_db.tx_bill_copy2",
+                    "migrate_db.tx_bill_copy3"
+                ],
+                "migrate_db.tx_order":[
+                    "migrate_db.tx_order_copy1",
+                    "migrate_db.tx_order_copy2"
+                ],
+                "migrate_db.tx_order_money":"migrate_db.tx_order_money"
+            },
+            "extra": {
+                "limit": 1000,
+                "resume": true
+            },
+            "resource_id": "no1000001",
+            "sync_mode": "replica"
+        }
+    ],
+    "target": [
+        {
+            "document_set": {
+                "migrate_db.tx_users":"new_db.user_schedule",
+                "migrate_db.tx_user_bank":"new_db.user_bank",
+                "migrate_db.tx_user_auth":"new_db.user_real_auth",
+                "migrate_db.tx_user_capital":"new_db.user_capital_detail",
+                "migrate_db.tx_cash_withdraw":"new_db.finance_loan",
+                "migrate_db.tx_bill_copy1": "new_db.finance_invoice",
+                "migrate_db.tx_bill_copy2": "new_db.inance_invoice_detail",
+                "migrate_db.tx_bill_copy3": "new_db.finance_invoice_order",
+                "migrate_db.tx_order_copy1":"new_db.order",
+                "migrate_db.tx_order_copy2":"new_db.order_brand",
+                "migrate_db.tx_order_money":"new_db.finance_loan"
+            },
+            "extra": {},
+            "resource_id": "no1000002"
+        }
+    ]
+}

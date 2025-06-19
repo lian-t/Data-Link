@@ -1,0 +1,38 @@
+{
+  "setup": {
+    "desc": "elasticsearch to elasticsearch",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "服务器",
+      "type": "elasticsearch",
+      "user": "elastic",
+      "pass": "******",
+      "host": "db-01.test.com",
+      "port": "43092",
+      "dsn": "http://db-01.test.com:43092"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "direct",
+      "document_set": "area_index",
+      "extra": {
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "area_index": "area_index2"
+      },
+      "extra": {
+      }
+    }
+  ],
+  "pipeline": []
+}

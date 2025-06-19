@@ -1,0 +1,172 @@
+<html lang="zh">
+<head>
+    <title>任务统计!</title>
+    <style>
+        .canvasBox {
+            width: 100%;
+            height: 500px;
+            border: solid 1px grey;
+        }
+
+        #charts {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/app.css"/>
+    <link rel="stylesheet" href="/static/lib/modal/modal.css"/>
+    <link rel="stylesheet" href="/static/lib/polipop/polipop.core.min.css"/>
+    <link rel="stylesheet" href="/static/lib/polipop/polipop.default.min.css"/>
+</head>
+<body>
+<div style="max-width: 1200px;margin: 0 auto;">
+    <div style="padding: 3px 0;">
+        <button class="button-24 button-24-mid button-24-green" onclick="clearInterval1(this)">停止刷新</button>
+        下次刷新时间:<span id="interval_refresh">5</span>s
+    </div>
+    <div class="canvasBox">
+        <div id="charts"></div>
+    </div>
+</div>
+
+<script src="/static/js/axios.min.js"></script>
+<script src="/static/lib/modal/minimal-modal.min.js"></script>
+<script src="/static/lib/polipop/polipop.min.js"></script>
+<script src="/static/js/common.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+
+<script type="text/javascript">
+    function render(list) {
+        let xData = [];
+        let series1Data = [];
+        let series2Data = [];
+        for (const key in list) {
+            let item = list[key]
+            xData.push(item.time)
+            series1Data.push(item.msg.SpeedRateRow)
+            series2Data.push(item.msg.SpeedRateEvent)
+        }
+        let myChart = echarts.init(document.getElementById('charts'));
+        // 绘制图表
+        let option = {
+            title: {
+                text: "数据库日志解析效率",
+                left: 'center'
+            },
+            tooltip: {
+                show: true,
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: xData
+            },
+            yAxis: {
+                type: 'value',
+                name: '速度',
+                position: 'left',
+                axisLabel: {
+                    formatter: '{value} 条/s'
+                }
+            },
+            series: [
+                {
+                    name: 'Row速率',
+                    data: series1Data,
+                    type: 'line',
+                    smooth: true
+                },
+                {
+                    name: 'Event速率',
+                    data: series2Data,
+                    type: 'line',
+                    smooth: true
+                }
+            ]
+        };
+        myChart.setOption(option);
+    }
+
+    function loadMessage() {
+        let uuid = location.href.split('=')[1]
+        axios.get('/task_error?page=stat&num=30&sort=desc&uuid=' + uuid).then(function (res) {
+            if (typeof res.data !== 'string') {
+                return
+            }
+            let list = [];
+            let lineArr = res.data.split("\n")
+            if (lineArr.length > 30) {
+                lineArr = lineArr.slice(0, 30)
+            }
+            for (const lineKey in lineArr) {
+                const lineItem = lineArr[lineKey].split(" ")
+                if (!Array.isArray(lineItem) || lineItem.length !== 3) {
+                    continue
+                }
+                let item = {}
+                for (const itemKey in lineItem) {
+                    const colItem = lineItem[itemKey].split("=")
+                    if (!Array.isArray(colItem) || colItem.length !== 2) {
+                        continue
+                    }
+                    colItem[1] = colItem[1].substr(1, colItem[1].length - 2)
+                    switch (colItem[0]) {
+                        case 'time':
+                            let t = formatDate((new Date(colItem[1])).getTime() / 1000)
+                            item['time'] = t.split(" ")[1]
+                            break;
+                        case 'level':
+                            break;
+                        case 'msg':
+                            item['msg'] = JSON.parse(colItem[1].replaceAll('\\', ''))
+                            break;
+                        default:
+                        // pass;
+                    }
+                }
+                list.push(item)
+            }
+
+            render(list.reverse())
+        }).catch(function (error) {
+            console.log(error)
+            console.log(error.message)
+            showPop('error', '加载信息', false)
+        });
+    }
+
+    // 定时器
+    let interval1 = null;
+    let sec = 4;
+
+    function clearInterval1(ele) {
+        if (interval1) {
+            ele.innerHTML = "点击自动刷新";
+            clearInterval(interval1)
+            interval1 = null;
+            return;
+        }
+        runInterval1(ele);
+    }
+
+    function runInterval1(ele) {
+        if (typeof ele !== 'undefined') {
+            ele.innerHTML = "停止刷新"
+        }
+        interval1 = setInterval(function () {
+            document.getElementById("interval_refresh").innerHTML = sec.toString();
+            sec = sec - 1;
+            if (sec < 0) {
+                sec = 5;
+                loadMessage()
+            }
+        }, 1000);
+    }
+
+    window.onload = function () {
+        loadMessage()
+        runInterval1()
+    }
+</script>
+</body>
+</html>

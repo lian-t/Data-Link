@@ -1,0 +1,48 @@
+{
+  "setup": {
+    "desc": "elasticsearch to mongodb",
+    "error_record": true
+  },
+  "resource": [
+    {
+      "id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "mongodb服务器",
+      "type": "mongodb",
+      "user": "admin",
+      "pass": "******",
+      "host": "10.10.10.10",
+      "port": "33017",
+      "dsn": "mongodb://admin:******@10.10.10.10:33017/?connect=direct"
+    },
+    {
+      "id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "desc": "elasticsearch服务器",
+      "type": "elasticsearch",
+      "user": "elastic",
+      "pass": "******",
+      "host": "db-01.test.com",
+      "port": "43092",
+      "dsn": "http://db-01.test.com:43092"
+    }
+  ],
+  "source": [
+    {
+      "resource_id": "a9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "sync_mode": "direct",
+      "document_set": "area_index",
+      "extra": {
+      }
+    }
+  ],
+  "target": [
+    {
+      "resource_id": "b9e96c08-56de-4d97-a504-59ddaccee8c6",
+      "document_set": {
+        "area_index": "datalink_foo.area"
+      },
+      "extra": {
+      }
+    }
+  ],
+  "pipeline": []
+}

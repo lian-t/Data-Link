@@ -1,0 +1,18 @@
+[server]
+# 远处服务器
+host = "http://127.0.0.1:19192"
+# 临时文件目录,保存进度(分块保存items数据进度)
+dir = ""
+# 远程传输的协议: tcp|http
+protocol = "http"
+
+[items]
+    [items.project001]
+    path="D:\\logo2022-06-27.log"
+    regex=["",""]
+    first=true
+
+    [items.project002]
+    path="D:\\logs"
+    regex=["",""]
+    first=true

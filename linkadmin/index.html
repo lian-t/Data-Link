@@ -1,0 +1,359 @@
+<html lang="zh">
+<head>
+    <title>datalink!</title>
+    <style>
+
+        .pure-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+            border: 1px solid #cbcbcb;
+        }
+
+        .pure-table caption {
+            color: #000;
+            font: italic 85%/1 arial, sans-serif;
+            padding: 1em 0;
+            text-align: center;
+        }
+
+        .pure-table td, .pure-table th {
+            border-left: 1px solid #cbcbcb;
+            font-size: inherit;
+            margin: 0;
+            overflow: hidden;
+            padding: .5em .5em;
+        }
+
+        .pure-table thead {
+            background-color: #e0e0e0;
+            color: #000;
+            text-align: left;
+            vertical-align: bottom;
+        }
+
+        .pure-table td {
+            background-color: transparent;
+        }
+
+        .pure-table-odd td {
+            background-color: #f2f2f2;
+        }
+
+        /* 模态框 */
+        section {
+            width: 100%;
+            min-height: 200vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #task-content {
+            resize: none;
+            outline: none;
+            height: 400px;
+            width: 600px;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/app.css"/>
+    <link rel="stylesheet" href="/static/lib/modal/modal.css"/>
+    <link rel="stylesheet" href="/static/lib/polipop/polipop.core.min.css"/>
+    <link rel="stylesheet" href="/static/lib/polipop/polipop.default.min.css"/>
+</head>
+<body>
+
+<div style="max-width: 1200px;margin: 0 auto;">
+    <div id="toolbar" style="margin-bottom: 10px">
+        <button class="button-24 button-24-green button-24-mid" role="button" onclick="showAddTaskView('', true)">新增任务
+        </button>
+        <button class="button-24 button-24-green button-24-mid" role="button" onclick="reloadTask()">刷新列表</button>
+        <a class="button-24 button-24-primary button-24-small" href="/playground" target="_blank">Playground</a>
+        <button class="button-24 button-24-red button-24-small" style="float: right; margin-right: 10px"
+                onclick="logout('', true)">退出
+        </button>
+    </div>
+    <div style="padding: 3px 0;">
+        <button class="button-24 button-24-primary" onclick="clearInterval1(this)">停止刷新</button>
+        下次刷新时间:<span id="interval_refresh">5</span>s
+    </div>
+    <div>
+        <table class="pure-table" id="task_table">
+        </table>
+    </div>
+    <div>
+        <div class="modal" id="modal-1" area-hidden="true">
+            <div class="modal__overlay js-close-modal-trigger" tabindex="-1">
+                <div class="modal__container">
+                    <header class="modal__header">
+                        <h2 class="modal__title">任务内容</h2>
+                        <button class="modal__close" style="cursor: pointer" onclick="MinimalModal.close()">✕</button>
+                    </header>
+                    <main class="modal__content">
+                        <textarea name="content" id="task-content"></textarea>
+                    </main>
+                    <footer class="modal__footer">
+                        <button class="button-24 button-24-primary button-24-mid" onclick="MinimalModal.close()">关闭
+                        </button>
+                        <button class="button-24 button-24-green button-24-mid" id="task-content-add-btn"
+                                onclick="addTask()">添加任务
+                        </button>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="/static/js/axios.min.js"></script>
+<script src="/static/lib/modal/minimal-modal.min.js"></script>
+<script src="/static/lib/polipop/polipop.min.js"></script>
+<script src="/static/js/common.js"></script>
+<script type="text/javascript">
+    function prettyFormat(code) {
+        try {
+            for (const key in code) {
+                if (typeof code[key] === 'function') {
+                    let str = code[key];
+                    str = str.toString();
+                    code[key] = str.replace(/\n/g, '<br/>');
+                }
+            }
+            let str = JSON.stringify(code, null, 2);
+            str = str.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+            return str;
+        } catch (e) {
+            console.error('异常信息:' + e);
+            return '';
+        }
+    }
+
+    function renderTable(arr) {
+        document.getElementById('task_table').innerHTML = '\n' +
+            '<tr class="pure-table-odd">' +
+            '<th style="width: 32px">序号</th>' +
+            '<th style="width: 70px">同步模式</th>' +
+            '<th style="width: 70px">任务状态</th>' +
+            '<th>描述</th>' +
+            '<th style="width: 160px">启动时间</th>' +
+            '<th style="width: 90px">读取数量</th>' +
+            '<th style="width: 90px">失败数量</th>' +
+            '<th style="width: 90px">速度</th>' +
+            '<th style="width: 164px">操作</th>' +
+            '</tr>'
+        arr.forEach((item, index, array) => {
+            const obj = document.createElement("tr");
+            if (index % 2 === 0) {
+                obj.setAttribute("class", "pure-table-odd")
+            }
+            let str = '';
+            str += '<td>' + (index + 1) + '</td>';
+            str += '<td>' + item.SyncMode + '</td>';
+            let sm = '';
+            if (item.HealthState === 'green') {
+                sm = '#0DAF71';
+            } else if (item.HealthState === 'red') {
+                sm = '#D64F48';
+            } else if (item.HealthState === 'yellow') {
+                sm = '#FEAE1B';
+            }
+            if (item.State === "stop") {
+                let fv = '<a href="/task_error?uuid=' + item.Uuid + '" class="task-error-log" target="_blank" >' + item.State + '</a>';
+                str += '<td style="color:' + sm + '">' + fv + '</td>';
+            } else {
+                str += '<td style="color:' + sm + '">' + item.State + '</td>';
+            }
+            str += '<td align="left">' + item.Desc + '</td>';
+            let ts = ' - '
+            if (item.LatestRunStartAt > 0) {
+                ts = formatDate(item.LatestRunStartAt)
+            }
+            str += '<td>' + ts + '</td>';
+            str += '<td>' + item.FullReadCount + '</td>';
+            let fv = (item.FailedDeliveryCount + item.FailedPipeLineCount)
+            if (fv > 0) {
+                fv = '<a href="/task_error?uuid=' + item.Uuid + '" class="task-error-log" target="_blank" >' + fv + '</a>';
+            }
+            str += '<td>' + fv + '</td>';
+            str += '<td>' + item.PreSec + '</td>';
+            str += '<td align="right">'
+            if (item.State === 'null'
+                || item.State === 'done'
+                || item.State === 'stop') {
+                str += '<button class="button-24 button-24-blue button-24-small" role="button" onClick="startTask(\'' + item.Uuid + '\')">启动</button>'
+                str += '<button class="button-24 button-24-primary button-24-small" role="button" onClick="detailTask(\'' + item.Uuid + '\')">详情</button>'
+                str += '<button class="button-24 button-24-red button-24-small" role="button" onClick="removeTask(\'' + item.Uuid + '\')">删除</button>'
+            }
+            if (item.State === 'running') {
+                str += '<button class="button-24 button-24-blue button-24-small" role="button" onClick="stopTask(\'' + item.Uuid + '\')">暂停</button>'
+                str += '<button class="button-24 button-24-primary button-24-small" role="button" onClick="detailTask(\'' + item.Uuid + '\')">详情</button>'
+            }
+            str += '</td>';
+            obj.innerHTML = str;
+            document.getElementById('task_table').appendChild(obj);
+        })
+    }
+
+    function reloadTask() {
+        let query = location.search.substring(1);
+        axios.get('/tasks?' + query).then(function (res) {
+            if (res.data.code === "000000") {
+                renderTable(res.data.data)
+            } else if (res.data.code === "100000") {
+                window.document.write(res.data.msg)
+            } else {
+                showPop('加载失败')
+            }
+        }).catch(function (error) {
+            showPop('error', '加载任务列表', false)
+        }).then(function () {
+        });
+    }
+
+    function clearTask() {
+        axios.delete('/tasks/clear').then(function (res) {
+            if (!!res.data.code && res.data.code === "000000") {
+                showPop('success', '清空任务', true)
+            } else {
+                showPop('error', '清空任务', false)
+            }
+        })
+    }
+
+    function startTask(uuid) {
+        axios.post('/task', {"uuid": uuid, "op": "start"}).then(res => {
+            if (!!res.data.code && res.data.code === "000000") {
+                showPop('success', '启动任务', true)
+            } else {
+                showPop('error', '启动任务', false)
+            }
+        })
+    }
+
+    function stopTask(uuid) {
+        axios.post('/task', {"uuid": uuid, "op": "stop"}).then(res => {
+            if (!!res.data.code && res.data.code === "000000") {
+                showPop('success', '暂停任务', true)
+            } else {
+                showPop('error', '暂停任务', false)
+            }
+        })
+    }
+
+    function removeTask(uuid) {
+        axios.delete('/task', {"data": {"uuid": uuid}}).then(res => {
+            if (!!res.data.code && res.data.code === "000000") {
+                showPop('success', '删除任务', true)
+            } else {
+                polipop.add({
+                    type: 'error',
+                    title: '提示',
+                    content: res.data.msg
+                });
+            }
+        })
+    }
+
+    function detailTask(uuid) {
+        axios.get('/_detail?uuid=' + uuid).then(res => {
+            if (!!res.data) {
+                let ddd = prettyFormat(res.data)
+                showAddTaskView(ddd, false)
+            } else {
+                showPop('error', '获取详情', false)
+            }
+        })
+    }
+
+    function showAddTaskView(val, showBtn) {
+        const modal = document.querySelector("#modal-1");
+        document.getElementById("task-content").value = val
+        if (typeof showBtn == "boolean" && showBtn) {
+            document.getElementById("task-content-add-btn").style.display = 'initial'
+        } else {
+            document.getElementById("task-content-add-btn").style.display = 'none'
+        }
+        MinimalModal.show(modal);
+    }
+
+    function addTask() {
+        const txt = document.getElementById("task-content").value;
+        if (txt === "") {
+            return;
+        }
+        let val = null
+        try {
+            val = JSON.parse(txt)
+        } catch (e) {
+            showPop('error', '添加任务失败:无效的json', true)
+            return;
+        }
+        axios.put('/task', val).then(res => {
+            if (!!res.data.code && res.data.code === "000000") {
+                showPop('success', '添加任务', true)
+                document.getElementById("task-content").value = ""
+            } else {
+                polipop.add({
+                    type: 'error',
+                    title: '提示',
+                    content: res.data.msg
+                });
+            }
+            MinimalModal.close()
+        })
+    }
+
+    // 定时器
+    let interval1 = null;
+    let sec = 4;
+
+    function clearInterval1(ele) {
+        if (interval1) {
+            ele.innerHTML = "点击自动刷新";
+            clearInterval(interval1)
+            interval1 = null;
+            return;
+        }
+        runInterval1(ele);
+    }
+
+    function runInterval1(ele) {
+        if (typeof ele !== 'undefined') {
+            ele.innerHTML = "停止刷新"
+        }
+        interval1 = setInterval(function () {
+            document.getElementById("interval_refresh").innerHTML = sec.toString();
+            sec = sec - 1;
+            if (sec < 0) {
+                sec = 5;
+                reloadTask()
+            }
+        }, 1000);
+    }
+
+    function logout() {
+        let query = location.search.substring(1);
+        axios.post('/logout', query).then(res => {
+            if (!!res.data.code && res.data.code === "000000") {
+                window.document.write(res.data.data)
+            } else {
+                polipop.add({
+                    type: 'error',
+                    title: '提示',
+                    content: res.data.msg
+                });
+            }
+            MinimalModal.close()
+        })
+    }
+
+    window.onload = function () {
+        reloadTask()
+        runInterval1()
+    }
+
+</script>
+</body>
+</html>
